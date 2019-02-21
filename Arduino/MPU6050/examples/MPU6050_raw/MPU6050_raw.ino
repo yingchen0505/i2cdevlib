@@ -77,7 +77,7 @@ int16_t gx, gy, gz;
 #define SENSOR3_AD0 9
 #define SENSOR4_AD0 8
 bool blinkState = false;
-int activeSensor = 0;
+int activeSensor = 1;
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -138,12 +138,6 @@ void setup() {
 
 void callback() {
     
-    digitalWrite(SENSOR0_AD0, HIGH);
-    digitalWrite(SENSOR1_AD0, HIGH);
-    digitalWrite(SENSOR2_AD0, HIGH);
-    digitalWrite(SENSOR3_AD0, HIGH);
-    digitalWrite(SENSOR4_AD0, HIGH);
-    
     switch (activeSensor) {
       case 0:
         digitalWrite(SENSOR0_AD0, LOW);
@@ -181,15 +175,6 @@ void callback() {
         digitalWrite(SENSOR3_AD0, HIGH);
         break;
     }
-}
-
-void loop() {
-    // read raw accel/gyro measurements from device
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-    // these methods (and a few others) are also available
-    //accelgyro.getAcceleration(&ax, &ay, &az);
-    //accelgyro.getRotation(&gx, &gy, &gz);
 
     #ifdef OUTPUT_READABLE_ACCELGYRO
         // display tab-separated accel/gyro x/y/z values
@@ -210,7 +195,16 @@ void loop() {
         Serial.write((uint8_t)(gy >> 8)); Serial.write((uint8_t)(gy & 0xFF));
         Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
     #endif
+}
 
+void loop() {
+    // read raw accel/gyro measurements from device
+    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+    
+    // these methods (and a few others) are also available
+    //accelgyro.getAcceleration(&ax, &ay, &az);
+    //accelgyro.getRotation(&gx, &gy, &gz);
+    
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
