@@ -69,7 +69,13 @@ int16_t gx, gy, gz;
 
 
 #define LED_PIN 13
+#define SENSOR0_AD0 12
+#define SENSOR1_AD0 11
+#define SENSOR2_AD0 10
+#define SENSOR3_AD0 9
+#define SENSOR4_AD0 8
 bool blinkState = false;
+int activeSensor = 0;
 
 void setup() {
     // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -117,6 +123,12 @@ void setup() {
 
     // configure Arduino LED pin for output
     pinMode(LED_PIN, OUTPUT);
+
+    pinMode(SENSOR0_AD0, OUTPUT);
+    pinMode(SENSOR1_AD0, OUTPUT);
+    pinMode(SENSOR2_AD0, OUTPUT);
+    pinMode(SENSOR3_AD0, OUTPUT);
+    pinMode(SENSOR4_AD0, OUTPUT);
 }
 
 void loop() {
@@ -150,4 +162,48 @@ void loop() {
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);
+
+    digitalWrite(SENSOR0_AD0, HIGH);
+    digitalWrite(SENSOR1_AD0, HIGH);
+    digitalWrite(SENSOR2_AD0, HIGH);
+    digitalWrite(SENSOR3_AD0, HIGH);
+    digitalWrite(SENSOR4_AD0, HIGH);
+    
+    switch (activeSensor) {
+      case 0:
+        digitalWrite(SENSOR0_AD0, LOW);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 1:
+        digitalWrite(SENSOR1_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 2:
+        digitalWrite(SENSOR2_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 3:
+        digitalWrite(SENSOR3_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 4:
+        digitalWrite(SENSOR4_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        break;
+    }
 }
