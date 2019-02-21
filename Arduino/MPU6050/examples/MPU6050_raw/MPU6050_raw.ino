@@ -44,6 +44,8 @@ THE SOFTWARE.
     #include "Wire.h"
 #endif
 
+#include "TimerOne.h"
+
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for InvenSense evaluation board)
