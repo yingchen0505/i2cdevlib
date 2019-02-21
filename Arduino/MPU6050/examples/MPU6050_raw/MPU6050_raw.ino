@@ -131,40 +131,13 @@ void setup() {
     pinMode(SENSOR2_AD0, OUTPUT);
     pinMode(SENSOR3_AD0, OUTPUT);
     pinMode(SENSOR4_AD0, OUTPUT);
+
+    Timer1.initialize(200000);         // initialize timer1, and set a 0.2 second period
+    Timer1.attachInterrupt(callback);  // attaches callback() as a timer overflow interrupt
 }
 
-void loop() {
-    // read raw accel/gyro measurements from device
-    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
-
-    // these methods (and a few others) are also available
-    //accelgyro.getAcceleration(&ax, &ay, &az);
-    //accelgyro.getRotation(&gx, &gy, &gz);
-
-    #ifdef OUTPUT_READABLE_ACCELGYRO
-        // display tab-separated accel/gyro x/y/z values
-        Serial.print("a/g:\t");
-        Serial.print(ax); Serial.print("\t");
-        Serial.print(ay); Serial.print("\t");
-        Serial.print(az); Serial.print("\t");
-        Serial.print(gx); Serial.print("\t");
-        Serial.print(gy); Serial.print("\t");
-        Serial.println(gz);
-    #endif
-
-    #ifdef OUTPUT_BINARY_ACCELGYRO
-        Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));
-        Serial.write((uint8_t)(ay >> 8)); Serial.write((uint8_t)(ay & 0xFF));
-        Serial.write((uint8_t)(az >> 8)); Serial.write((uint8_t)(az & 0xFF));
-        Serial.write((uint8_t)(gx >> 8)); Serial.write((uint8_t)(gx & 0xFF));
-        Serial.write((uint8_t)(gy >> 8)); Serial.write((uint8_t)(gy & 0xFF));
-        Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
-    #endif
-
-    // blink LED to indicate activity
-    blinkState = !blinkState;
-    digitalWrite(LED_PIN, blinkState);
-
+void callback() {
+    
     digitalWrite(SENSOR0_AD0, HIGH);
     digitalWrite(SENSOR1_AD0, HIGH);
     digitalWrite(SENSOR2_AD0, HIGH);
@@ -208,4 +181,37 @@ void loop() {
         digitalWrite(SENSOR3_AD0, HIGH);
         break;
     }
+}
+
+void loop() {
+    // read raw accel/gyro measurements from device
+    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+
+    // these methods (and a few others) are also available
+    //accelgyro.getAcceleration(&ax, &ay, &az);
+    //accelgyro.getRotation(&gx, &gy, &gz);
+
+    #ifdef OUTPUT_READABLE_ACCELGYRO
+        // display tab-separated accel/gyro x/y/z values
+        Serial.print("a/g:\t");
+        Serial.print(ax); Serial.print("\t");
+        Serial.print(ay); Serial.print("\t");
+        Serial.print(az); Serial.print("\t");
+        Serial.print(gx); Serial.print("\t");
+        Serial.print(gy); Serial.print("\t");
+        Serial.println(gz);
+    #endif
+
+    #ifdef OUTPUT_BINARY_ACCELGYRO
+        Serial.write((uint8_t)(ax >> 8)); Serial.write((uint8_t)(ax & 0xFF));
+        Serial.write((uint8_t)(ay >> 8)); Serial.write((uint8_t)(ay & 0xFF));
+        Serial.write((uint8_t)(az >> 8)); Serial.write((uint8_t)(az & 0xFF));
+        Serial.write((uint8_t)(gx >> 8)); Serial.write((uint8_t)(gx & 0xFF));
+        Serial.write((uint8_t)(gy >> 8)); Serial.write((uint8_t)(gy & 0xFF));
+        Serial.write((uint8_t)(gz >> 8)); Serial.write((uint8_t)(gz & 0xFF));
+    #endif
+
+    // blink LED to indicate activity
+    blinkState = !blinkState;
+    digitalWrite(LED_PIN, blinkState);
 }
