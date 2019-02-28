@@ -55,6 +55,8 @@ THE SOFTWARE.
     #include "Wire.h"
 #endif
 
+#include "TimerOne.h"
+
 // class default I2C address is 0x68
 // specific I2C addresses may be passed as a parameter here
 // AD0 low = 0x68 (default for SparkFun breakout and InvenSense evaluation board)
@@ -98,7 +100,7 @@ MPU6050 mpu;
 // from the FIFO. Note this also requires gravity vector calculations.
 // Also note that yaw/pitch/roll angles suffer from gimbal lock (for
 // more info, see: http://en.wikipedia.org/wiki/Gimbal_lock)
-#define OUTPUT_READABLE_YAWPITCHROLL
+//#define OUTPUT_READABLE_YAWPITCHROLL
 
 // uncomment "OUTPUT_READABLE_REALACCEL" if you want to see acceleration
 // components with gravity removed. This acceleration reference frame is
@@ -111,7 +113,7 @@ MPU6050 mpu;
 // components with gravity removed and adjusted for the world frame of
 // reference (yaw is relative to initial orientation, since no magnetometer
 // is present in this case). Could be quite handy in some cases.
-//#define OUTPUT_READABLE_WORLDACCEL
+#define OUTPUT_READABLE_WORLDACCEL
 
 // uncomment "OUTPUT_TEAPOT" if you want output that matches the
 // format used for the InvenSense teapot demo
@@ -122,6 +124,14 @@ MPU6050 mpu;
 #define INTERRUPT_PIN 2  // use pin 2 on Arduino Uno & most boards
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
 bool blinkState = false;
+
+#define SENSOR0_AD0 12
+#define SENSOR1_AD0 11
+#define SENSOR2_AD0 10
+#define SENSOR3_AD0 9
+#define SENSOR4_AD0 8
+
+int activeSensor = 0;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -206,6 +216,12 @@ void setup() {
     mpu.setZGyroOffset(-85);
     mpu.setZAccelOffset(1788); // 1688 factory default for my test chip
 
+    pinMode(SENSOR0_AD0, OUTPUT);
+    pinMode(SENSOR1_AD0, OUTPUT);
+    pinMode(SENSOR2_AD0, OUTPUT);
+    pinMode(SENSOR3_AD0, OUTPUT);
+    pinMode(SENSOR4_AD0, OUTPUT);
+    
     // make sure it worked (returns 0 if so)
     if (devStatus == 0) {
         // turn on the DMP, now that it's ready
@@ -214,9 +230,11 @@ void setup() {
 
         // enable Arduino interrupt detection
         Serial.print(F("Enabling interrupt detection (Arduino external interrupt "));
-        Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
+        //Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
         Serial.println(F(")..."));
-        attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
+        //attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
+        Timer1.initialize(200000);         // initialize timer1, and set a 0.2 second period
+        Timer1.attachInterrupt(dmpDataReady);  // attaches dmpDataReady() as a timer overflow interrupt
         mpuIntStatus = mpu.getIntStatus();
 
         // set our DMP Ready flag so the main loop() function knows it's okay to use it
@@ -270,6 +288,49 @@ void loop() {
     // reset interrupt flag and get INT_STATUS byte
     mpuInterrupt = false;
     mpuIntStatus = mpu.getIntStatus();
+
+    switch (activeSensor) {
+      case 0:
+        digitalWrite(SENSOR0_AD0, LOW);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 1:
+        digitalWrite(SENSOR1_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 2:
+        digitalWrite(SENSOR2_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 3:
+        digitalWrite(SENSOR3_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 4:
+        digitalWrite(SENSOR4_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        break;
+    }
+
+    activeSensor++;
+    activeSensor %= 5;
+    Serial.print("Active Sensor = ");
+    Serial.println(activeSensor);
 
     // get current FIFO count
     fifoCount = mpu.getFIFOCount();
