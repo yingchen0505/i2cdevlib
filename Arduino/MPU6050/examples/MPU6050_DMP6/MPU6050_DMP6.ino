@@ -131,7 +131,7 @@ bool blinkState = false;
 #define SENSOR3_AD0 9
 #define SENSOR4_AD0 8
 
-int activeSensor = 0;
+int activeSensor = 2;
 
 // MPU control/status vars
 bool dmpReady = false;  // set true if DMP init was successful
@@ -160,7 +160,7 @@ uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\
 // ================================================================
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
-void dmpDataReady() {
+void dmpDataReady() {    
     mpuInterrupt = true;
 }
 
@@ -233,7 +233,7 @@ void setup() {
         //Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
         Serial.println(F(")..."));
         //attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
-        Timer1.initialize(200000);         // initialize timer1, and set a 0.2 second period
+        Timer1.initialize(500000);         // initialize timer1, and set a 0.5 second period
         Timer1.attachInterrupt(dmpDataReady);  // attaches dmpDataReady() as a timer overflow interrupt
         mpuIntStatus = mpu.getIntStatus();
 
@@ -287,7 +287,6 @@ void loop() {
 
     // reset interrupt flag and get INT_STATUS byte
     mpuInterrupt = false;
-    mpuIntStatus = mpu.getIntStatus();
 
     switch (activeSensor) {
       case 0:
@@ -327,10 +326,10 @@ void loop() {
         break;
     }
 
-    activeSensor++;
-    activeSensor %= 5;
     Serial.print("Active Sensor = ");
     Serial.println(activeSensor);
+    
+    mpuIntStatus = mpu.getIntStatus();
 
     // get current FIFO count
     fifoCount = mpu.getFIFOCount();
@@ -340,10 +339,11 @@ void loop() {
         // reset so we can continue cleanly
         mpu.resetFIFO();
         fifoCount = mpu.getFIFOCount();
-        Serial.println(F("FIFO overflow!"));
+        //Serial.println(F("FIFO overflow!"));
 
     // otherwise, check for DMP data ready interrupt (this should happen frequently)
-    } else if (mpuIntStatus & _BV(MPU6050_INTERRUPT_DMP_INT_BIT)) {
+    } //else if (mpuIntStatus & _BV(MPU6050_INTERRUPT_DMP_INT_BIT)) {
+    if (mpuIntStatus & _BV(MPU6050_INTERRUPT_DMP_INT_BIT)) {
         // wait for correct available data length, should be a VERY short wait
         while (fifoCount < packetSize) fifoCount = mpu.getFIFOCount();
 
@@ -440,4 +440,7 @@ void loop() {
         blinkState = !blinkState;
         digitalWrite(LED_PIN, blinkState);
     }
+
+    activeSensor++;
+    activeSensor %= 5;
 }
