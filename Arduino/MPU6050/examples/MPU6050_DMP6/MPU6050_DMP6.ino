@@ -153,7 +153,27 @@ float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gra
 // packet structure for InvenSense teapot demo
 uint8_t teapotPacket[14] = { '$', 0x02, 0,0, 0,0, 0,0, 0,0, 0x00, 0x00, '\r', '\n' };
 
+const int offset0[6] = {-3273, -1300, 1387, -17, -41, 81};
+const int offset1[6] = {-2734, 2518, 1139, 41, -35, 52};
+const int offset2[6] = {1960, -204, 1074, 203, -144, 25};
+const int offset3[6] = {-3742, 746, 1984, 80, -25, 83};
+const int offset4[6] = {983, -2752, 1027, 273, -40, -159};
 
+const int iAx = 0;
+const int iAy = 1;
+const int iAz = 2;
+const int iGx = 3;
+const int iGy = 4;
+const int iGz = 5;
+
+void SetOffsets(int TheOffsets[6])
+  { mpu.setXAccelOffset(TheOffsets [iAx]);
+    mpu.setYAccelOffset(TheOffsets [iAy]);
+    mpu.setZAccelOffset(TheOffsets [iAz]);
+    mpu.setXGyroOffset (TheOffsets [iGx]);
+    mpu.setYGyroOffset (TheOffsets [iGy]);
+    mpu.setZGyroOffset (TheOffsets [iGz]);
+  } // SetOffsets
 
 // ================================================================
 // ===               INTERRUPT DETECTION ROUTINE                ===
@@ -233,7 +253,7 @@ void setup() {
         //Serial.print(digitalPinToInterrupt(INTERRUPT_PIN));
         Serial.println(F(")..."));
         //attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady, RISING);
-        Timer1.initialize(500000);         // initialize timer1, and set a 0.5 second period
+        Timer1.initialize(50000);         // initialize timer1, and set a 0.05 second period
         Timer1.attachInterrupt(dmpDataReady);  // attaches dmpDataReady() as a timer overflow interrupt
         mpuIntStatus = mpu.getIntStatus();
 
@@ -295,6 +315,7 @@ void loop() {
         digitalWrite(SENSOR2_AD0, HIGH);
         digitalWrite(SENSOR3_AD0, HIGH);
         digitalWrite(SENSOR4_AD0, HIGH);
+        SetOffsets(offset0);
         break;
       case 1:
         digitalWrite(SENSOR1_AD0, LOW);
@@ -302,6 +323,7 @@ void loop() {
         digitalWrite(SENSOR2_AD0, HIGH);
         digitalWrite(SENSOR3_AD0, HIGH);
         digitalWrite(SENSOR4_AD0, HIGH);
+        SetOffsets(offset1);
         break;
       case 2:
         digitalWrite(SENSOR2_AD0, LOW);
@@ -309,6 +331,7 @@ void loop() {
         digitalWrite(SENSOR1_AD0, HIGH);
         digitalWrite(SENSOR3_AD0, HIGH);
         digitalWrite(SENSOR4_AD0, HIGH);
+        SetOffsets(offset2);
         break;
       case 3:
         digitalWrite(SENSOR3_AD0, LOW);
@@ -316,6 +339,7 @@ void loop() {
         digitalWrite(SENSOR1_AD0, HIGH);
         digitalWrite(SENSOR2_AD0, HIGH);
         digitalWrite(SENSOR4_AD0, HIGH);
+        SetOffsets(offset3);
         break;
       case 4:
         digitalWrite(SENSOR4_AD0, LOW);
@@ -323,6 +347,7 @@ void loop() {
         digitalWrite(SENSOR1_AD0, HIGH);
         digitalWrite(SENSOR2_AD0, HIGH);
         digitalWrite(SENSOR3_AD0, HIGH);
+        SetOffsets(offset4);
         break;
     }
 
@@ -415,11 +440,14 @@ void loop() {
             mpu.dmpGetLinearAccel(&aaReal, &aa, &gravity);
             mpu.dmpGetLinearAccelInWorld(&aaWorld, &aaReal, &q);
             Serial.print("aworld\t");
-            Serial.print(aaWorld.x);
+            double x = (double) aaWorld.x / 8192.0;
+            Serial.print(x, 5);
             Serial.print("\t");
-            Serial.print(aaWorld.y);
+            double y = (double) aaWorld.y / 8192.0;
+            Serial.print(y, 5);
             Serial.print("\t");
-            Serial.println(aaWorld.z);
+            double z = (double) aaWorld.z / 8192.0;
+            Serial.println(z, 5);
         #endif
     
         #ifdef OUTPUT_TEAPOT

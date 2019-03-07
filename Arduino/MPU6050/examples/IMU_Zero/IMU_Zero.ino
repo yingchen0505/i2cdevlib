@@ -91,6 +91,13 @@ and so on.
 MPU6050 accelgyro;
 //MPU6050 accelgyro(0x69); // <-- use for AD0 high
 
+#define SENSOR0_AD0 12
+#define SENSOR1_AD0 11
+#define SENSOR2_AD0 10
+#define SENSOR3_AD0 9
+#define SENSOR4_AD0 8
+
+int activeSensor = 4;
 
 const char LBRACKET = '[';
 const char RBRACKET = ']';
@@ -117,22 +124,35 @@ const int LinesBetweenHeaders = 5;
       int Target[6];
       int LinesOut;
       int N;
+
+//uint8_t fifoBuffer[64]; // FIFO storage buffer
+//Quaternion q;           // [w, x, y, z]         quaternion container
+//VectorInt16 aa;         // [x, y, z]            accel sensor measurements
       
 void ForceHeader()
   { LinesOut = 99; }
     
 void GetSmoothed()
   { int16_t RawValue[6];
+    
     int i;
     long Sums[6];
+    //long Sums_q[4];
+    //long Sums_aa[6];
     for (i = iAx; i <= iGz; i++)
-      { Sums[i] = 0; }
+      { Sums[i] = 0;
+        //Sums_q[i] = 0;
+        //Sums_aa[i] = 0;
+      }
 //    unsigned long Start = micros();
 
     for (i = 1; i <= N; i++)
       { // get sums
         accelgyro.getMotion6(&RawValue[iAx], &RawValue[iAy], &RawValue[iAz], 
                              &RawValue[iGx], &RawValue[iGy], &RawValue[iGz]);
+          //accelgyro.dmpGetQuaternion(&q, fifoBuffer);
+          //accelgyro.dmpGetAccel(&aa, fifoBuffer);
+            
         if ((i % 500) == 0)
           Serial.print(PERIOD);
         delayMicroseconds(usDelay);
@@ -298,6 +318,51 @@ void SetAveraging(int NewN)
 
 void setup()
   { Initialize();
+
+    pinMode(SENSOR0_AD0, OUTPUT);
+    pinMode(SENSOR1_AD0, OUTPUT);
+    pinMode(SENSOR2_AD0, OUTPUT);
+    pinMode(SENSOR3_AD0, OUTPUT);
+    pinMode(SENSOR4_AD0, OUTPUT);
+
+    switch (activeSensor) {
+      case 0:
+        digitalWrite(SENSOR0_AD0, LOW);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 1:
+        digitalWrite(SENSOR1_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 2:
+        digitalWrite(SENSOR2_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 3:
+        digitalWrite(SENSOR3_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR4_AD0, HIGH);
+        break;
+      case 4:
+        digitalWrite(SENSOR4_AD0, LOW);
+        digitalWrite(SENSOR0_AD0, HIGH);
+        digitalWrite(SENSOR1_AD0, HIGH);
+        digitalWrite(SENSOR2_AD0, HIGH);
+        digitalWrite(SENSOR3_AD0, HIGH);
+        break;
+    }
+    
     for (int i = iAx; i <= iGz; i++)
       { // set targets and initial guesses
         Target[i] = 0; // must fix for ZAccel 
